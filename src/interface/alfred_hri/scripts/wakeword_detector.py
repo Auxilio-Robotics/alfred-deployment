@@ -39,7 +39,7 @@ class WakewordDetector():
         self.wakeword = rospy.get_param("wakeword", "Hey Alfred")
         self.keywords_path = rospy.get_param("keywords_path", "resources/keywords/Hey-Alfred_en_linux_v2_1_0.ppn")
         self.models_path = rospy.get_param("models_path", "resources/models/porcupine_params.pv")
-        self.audio_device_index = rospy.get_param("audio_device_index", 1)
+        self.audio_device_index = rospy.get_param("audio_device_index", 5)
         self.rospack = rospkg.RosPack()
         self.package_path = self.rospack.get_path("alfred_hri")
 
@@ -50,10 +50,11 @@ class WakewordDetector():
         # Access key is stored in ~/.secrets.sh
         self.triggerCallback = triggerCallback
         # check if file exists
-        if not os.path.isfile(os.path.expanduser("~/ws/api_keys/.secrets.json")):
+        if not os.path.isfile(os.path.expanduser("~/.secrets.json")):
+            print(os.path.expanduser('~/.secrets.json'))
             sys.exit("ERROR: secrets.json does not exist. Please create it and add your access key.")
         
-        secrets_file = os.path.expanduser("~/ws/api_keys/.secrets.json")
+        secrets_file = os.path.expanduser("~/.secrets.json")
         config = {}
         with open(secrets_file, "r") as f:
             config = f.read()
@@ -62,7 +63,7 @@ class WakewordDetector():
         self.access_key = None
 
         if "PORCUPINE_ACCESS_KEY" not in config.keys():
-            sys.exit("ERROR: PORCUPINE_ACCESS_KEY is not set. Please add it to ~/ws/api_keys/.secrets.json.")
+            sys.exit("ERROR: PORCUPINE_ACCESS_KEY is not set. Please add it to ~/.secrets.json.")
 
         self.access_key = config["PORCUPINE_ACCESS_KEY"]
 
@@ -82,7 +83,6 @@ class WakewordDetector():
     def process_audio(self, in_data):
         keyword_index = self.porcupine.process(in_data)
         if keyword_index >= 0:
-            print("Detected keyword: " + self.wakeword) 
             self.recorder.stop()
             self.recorderStarted = False
             self.triggerCallback()
